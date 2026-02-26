@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- This is the most appropriate target framework for the game's Unity version. -->
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <!-- This is the GUID of your mod. Example: com.github.YourAccount.BepInExTemplate -->
+    <AssemblyName>com.github.Stelios-Kourlis.RopeTracker</AssemblyName>
+    <!-- This is the display name of your mod. Example: BepInEx Template -->
+    <AssemblyTitle>RopeTracker</AssemblyTitle>
+    <!-- This is the version number of your mod. -->
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include=" 	PEAKModding-PEAKLib_UI" Version="1.6.1" Private="False" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="com.github.Stelios-Kourlis.MoveableUI">
+      <HintPath>A:\Home\Game Related\PEAK\MoveableUI\artifacts\bin\MoveableUI\release\com.github.Stelios-Kourlis.MoveableUI.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+  <!-- Embed the DLL into final mod assembly -->
+  <Target Name="ILMergeAssemblies" AfterTargets="Build">
+    <Exec Command="ilrepack /target:library /allowdup /lib:&quot;A:\Steam\steamapps\common\PEAK\BepInEx\core&quot; /out:&quot;A:\Home\Game Related\PEAK\RopeTracker\artifacts\bin\RopeTracker\release\com.github.Stelios-Kourlis.RopeTracker.dll&quot; &quot;A:\Home\Game Related\PEAK\RopeTracker\artifacts\bin\RopeTracker\release\com.github.Stelios-Kourlis.RopeTracker.dll&quot; &quot;A:\Home\Game Related\PEAK\RopeTracker\artifacts\bin\RopeTracker\release\com.github.Stelios-Kourlis.MoveableUI.dll&quot;" />
+  </Target>
+</Project>

@@ -1,7 +1,8 @@
 using HarmonyLib;
 using Photon.Pun;
-using RopeTracker;
 using UnityEngine;
+
+namespace RopeTracker;
 
 [HarmonyPatch(typeof(RunManager), nameof(RunManager.StartRun))]
 class IslandEnterPatch

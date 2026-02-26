@@ -3,13 +3,11 @@
     This is a special file that contains shared configuration
     for all project files in subdirectories.
   -->
-
   <!-- Import our shared user configuration file -->
   <Import
     Project="$(SolutionRoot)Config.Build.user.props"
     Condition="Exists('$(SolutionRoot)Config.Build.user.props')"
   />
-
   <!-- Primary configuration for the project -->
   <PropertyGroup>
     <!-- Use latest C# version. -->
@@ -26,7 +24,6 @@
     <!-- Substitute full path to this directory with ./, hiding it from debug symbols. -->
     <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))=./</PathMap>
   </PropertyGroup>
-
   <!-- Custom props -->
   <PropertyGroup>
     <!-- Define a variable that points to this directory. -->
@@ -38,5 +35,4 @@
     <PeakPluginsDir Condition="$(PeakPluginsDir) == ''">$(PeakGameRootDir)/BepInEx/plugins/</PeakPluginsDir>
     <ManagedDir>$(PeakGameRootDir)/PEAK_Data/Managed/</ManagedDir>
   </PropertyGroup>
-
 </Project>

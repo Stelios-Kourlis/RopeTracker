@@ -1,5 +1,6 @@
 using HarmonyLib;
-using RopeTracker;
+
+namespace RopeTracker;
 
 [HarmonyPatch(typeof(Rope), nameof(Rope.AttachToAnchor_Rpc))]
 class RopeAnchorPatch
