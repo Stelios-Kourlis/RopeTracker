@@ -3,7 +3,6 @@
     This is a special file that contains shared configuration
     for all project files in subdirectories.
   -->
-  <!-- For NuGet config see C:\Users\kstel\AppData\Roaming\NuGet -->
   <!-- Set extra NuGet sources -->
   <PropertyGroup>
     <RestoreAdditionalProjectSources>
