@@ -8,7 +8,7 @@ repository = "https://thunderstore.io"
 namespace = "kstelakis"
 name = "Is_The_Scoutmaster_Close"
 description = "How close are you to spawning the scoutmaster? Will you be the target if he spawns? A very light mod that gives you that info"
-websiteUrl = ""                                                                                                                               # TODO: Add a link to your mod repository here (optional)
+websiteUrl = "https://github.com/Stelios-Kourlis/PEAK-Mods"
 containsNsfwContent = false
 
 [package.dependencies]
