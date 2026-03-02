@@ -17,7 +17,7 @@ public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log { get; private set; } = null!;
     private Harmony _harmony = null!;
-    private static PeakText _closestScoutDistance = null!;
+    private static PeakText _scoutmasterStatus = null!;
     private static ConfigEntry<Vector2> uiPosition = null!;
 
     private void Awake()
@@ -33,8 +33,8 @@ public partial class Plugin : BaseUnityPlugin
             "Stored text position (RectTransform.localPosition)"
         );
 
-        RunTracker.Plugin.isInAirport += SpawnUI;
-        RunTracker.Plugin.isInIsland += DestroyUI;
+        RunTracker.Plugin.isInAirport += DestroyUI;
+        RunTracker.Plugin.isInIsland += SpawnUI;
 
         Log.LogInfo($"Plugin {Name} is loaded!");
     }
@@ -42,6 +42,8 @@ public partial class Plugin : BaseUnityPlugin
     public void Update()
     {
         if (PhotonNetwork.OfflineMode) return; //No other scouts present
+
+        if (_scoutmasterStatus == null) return; //UI not loaded yet
 
         Character myCharacter = null!;
         List<Character> otherScouts = [];
@@ -61,10 +63,34 @@ public partial class Plugin : BaseUnityPlugin
             return;
         }
 
-        if (false)//TODO check if dead
+        if (otherScouts.Count == 0)
         {
-            _closestScoutDistance.SetText($"Safe! (Dead :( )");
-            _closestScoutDistance.SetColor(Color.green);
+            _scoutmasterStatus.SetText($"Safe! (No other scouts found)");
+            _scoutmasterStatus.SetColor(Color.green);
+            return;
+        }
+
+        //Filter out dead or fully passed out scouts, as they don't affect the scoutmaster's behavior
+        otherScouts = otherScouts.Where(c => !c.data.dead && !c.data.fullyPassedOut).ToList();
+
+        if (otherScouts.Count == 0)
+        {
+            _scoutmasterStatus.SetText($"Safe! (Only Scout Alive)");
+            _scoutmasterStatus.SetColor(Color.green);
+            return;
+        }
+
+        if (myCharacter.data.dead)
+        {
+            _scoutmasterStatus.SetText($"Safe! (Dead :( )");
+            _scoutmasterStatus.SetColor(Color.green);
+            return;
+        }
+
+        if (myCharacter.data.fullyPassedOut)
+        {
+            _scoutmasterStatus.SetText($"Safe! (Passed Out :/ )");
+            _scoutmasterStatus.SetColor(Color.green);
             return;
         }
 
@@ -72,8 +98,8 @@ public partial class Plugin : BaseUnityPlugin
 
         if (myHeight > 1320)
         {
-            _closestScoutDistance.SetText($"Safe! (Above 1320m)");
-            _closestScoutDistance.SetColor(Color.green);
+            _scoutmasterStatus.SetText($"Safe! (Above 1320m)");
+            _scoutmasterStatus.SetColor(Color.green);
             return;
         }
 
@@ -83,44 +109,46 @@ public partial class Plugin : BaseUnityPlugin
 
         if (highestOtherScoutHeight > myHeight)
         {
-            _closestScoutDistance.SetText($"Safe! ({highestOtherScoutHeight - myHeight}m below highest scout)");
-            _closestScoutDistance.SetColor(Color.green);
+            _scoutmasterStatus.SetText($"Safe! ({highestOtherScoutHeight - myHeight}m below highest scout)");
+            _scoutmasterStatus.SetColor(Color.green);
             return;
         }
 
         if (otherScouts.Any(c => CharacterStats.UnitsToMeters(Vector3.Distance(c.transform.position, myCharacter.transform.position)) < 24))
         {
-            _closestScoutDistance.SetText($"Safe! (within 24m of another scout)");
-            _closestScoutDistance.SetColor(Color.green);
+            _scoutmasterStatus.SetText($"Safe! (within 24m of another scout)");
+            _scoutmasterStatus.SetColor(Color.green);
             return;
         }
 
         if (myHeight - highestOtherScoutHeight < 128)
         {
-            _closestScoutDistance.SetText($"{myHeight - highestOtherScoutHeight}m above 2nd highest scout");
-            _closestScoutDistance.SetColor(new Color(0.8742f, 0.8567f, 0.7615f, 1));
+            _scoutmasterStatus.SetText($"{myHeight - highestOtherScoutHeight}m above 2nd highest scout");
+            _scoutmasterStatus.SetColor(new Color(0.8742f, 0.8567f, 0.7615f, 1));
         }
         else
         {
-            _closestScoutDistance.SetText($"{myHeight - highestOtherScoutHeight}m above 2nd highest scout");
-            _closestScoutDistance.SetColor(Color.red);
+            _scoutmasterStatus.SetText($"{myHeight - highestOtherScoutHeight}m above 2nd highest scout");
+            _scoutmasterStatus.SetColor(Color.red);
         }
     }
 
     public static void SpawnUI()
     {
-        _closestScoutDistance = MenuAPI.CreateText($"Loading...", "ScoutmasterStatusText")
+        if (_scoutmasterStatus != null) return; //Already spawned
+        Log.LogInfo($"IsTheScoutmasterClose: Spawning UI");
+        _scoutmasterStatus = MenuAPI.CreateText($"Loading...", "ScoutmasterStatusText")
                                 .SetFontSize(24f)
                                 .SetColor(new Color(0.8742f, 0.8567f, 0.7615f, 1));
         Canvas canvas = FindFirstObjectByType<GUIManager>().transform.Find("Canvas_HUD").GetComponent<Canvas>();
-        _closestScoutDistance.transform.SetParent(canvas.transform, false);
-        _closestScoutDistance.gameObject.AddComponent<MoveableObject>();
-        RectTransform rect = _closestScoutDistance.GetComponent<RectTransform>();
+        _scoutmasterStatus.transform.SetParent(canvas.transform, false);
+        _scoutmasterStatus.gameObject.AddComponent<MoveableObject>();
+        RectTransform rect = _scoutmasterStatus.GetComponent<RectTransform>();
         rect.anchorMin = new Vector2(0.5f, 1f);
         rect.anchorMax = new Vector2(0.5f, 1f);
         rect.pivot = new Vector2(0.5f, 1f);
         rect.anchoredPosition = new Vector2(0, 0);
-        _closestScoutDistance.gameObject.GetComponent<MoveableObject>().OnPositionChanged += newPos =>
+        _scoutmasterStatus.gameObject.GetComponent<MoveableObject>().OnPositionChanged += newPos =>
         {
             Log.LogInfo($"New position: {newPos}");
             uiPosition.Value = newPos;
@@ -130,6 +158,8 @@ public partial class Plugin : BaseUnityPlugin
 
     public static void DestroyUI()
     {
-        if (_closestScoutDistance != null) Destroy(_closestScoutDistance.gameObject);
+        Log.LogInfo($"IsTheScoutmasterClose: Destroying UI");
+        if (_scoutmasterStatus != null) Destroy(_scoutmasterStatus.gameObject);
+        _scoutmasterStatus = null!;
     }
 }
