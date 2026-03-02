@@ -57,6 +57,7 @@ public partial class Plugin : BaseUnityPlugin
 
     public static void SpawnUI()
     {
+        if (_ropeLengthText != null) return; //Already spawned
         _ropeLengthText = MenuAPI.CreateText($"{_totalRopeLengthInMeters}m/100m", "RopeLengthCounterText")
                                 .SetFontSize(24f)
                                 .SetColor(new Color(0.8742f, 0.8567f, 0.7615f, 1));
@@ -80,5 +81,6 @@ public partial class Plugin : BaseUnityPlugin
     public static void DestroyUI()
     {
         if (_ropeLengthText != null) Destroy(_ropeLengthText.gameObject);
+        _ropeLengthText = null!;
     }
 }
